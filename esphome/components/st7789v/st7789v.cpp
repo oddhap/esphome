@@ -160,17 +160,17 @@ float ST7789V::get_setup_priority() const { return setup_priority::PROCESSOR; }
 
 
 void ST7789V::update() {
-  if (this->no_disp_buffer_ ) {
-    this->draw_filled_rect_(0, 0, this->get_width(), this->get_height(), 0X0000); 
-    if (this->writer_local_.has_value())  // call lambda function if available
+  if (this->no_disp_buffer_) {
+    if (this->writer_local_.has_value())
       (*this->writer_local_)(*this);
   } else {
     this->clear();
-    if (this->writer_local_.has_value())  // call lambda function if available
+    if (this->writer_local_.has_value())
       (*this->writer_local_)(*this);
-    this->write_display_data(); 
+    this->write_display_data();
   }
 }
+
 
 
 
@@ -319,6 +319,14 @@ void ST7789V::draw_filled_rect_(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t 
     this->write_color_(color, size);
   }
   this->disable();
+}
+
+void ST7789V::fill_rect_fast(uint16_t x, uint16_t y, uint16_t w, uint16_t h, Color color) {
+  if (w == 0 || h == 0) return;
+  uint16_t x2 = x + w - 1;
+  uint16_t y2 = y + h - 1;
+  auto c565 = display::ColorUtil::color_to_565(color);
+  this->draw_filled_rect_(x, y, x2, y2, c565);
 }
 
 void HOT ST7789V::draw_absolute_pixel_internal(int x, int y, Color color) {
